@@ -125,3 +125,135 @@ NGINX can be accessed through the following DNS name from within your cluster:
 kubectl get pods --watch
 ```
 ![current pods](ss/current-pods.png)
+
+
+## Task 3 :
+Basit bir uygulamanın helm chart'a dönüştürülmesi
+<hr>
+
+1) Go uygulamasının oluşturulması
+> Bunun için [task-3](./task-3/) klasörü altında *main.go* dosyasını oluşturduk.
+
+2) Helm Chart oluşturabilmemiz için öncesinde elimizde Kubernetes tarafından orkestre edilebilecek bir docker image'ımızın olması gerekir. Bu sebeple oluşturduğumuz projemizin build'ini alabilmek için aşağıdaki *Dockerfile* dosyasını oluşturduk.
+
+```bash
+#Dockerfile
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+#Runner
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/main .
+
+EXPOSE 8081
+CMD ["./main"]
+```
+
+3) Docker image'ının oluşturulması
+```bash
+DOCKER_BUILDKIT=1 docker build -t <"my-username">/hello-go:v1
+```
+
+4) Image'ın registry'ye aktarılması
+```bash
+docker push <"my-username">/hello-go:v1
+```
+
+5) Helm Chart oluşturma - Gereksiz dosyaların temizlenmesi
+```bash
+helm create my-app
+
+# Gereksizleri dosyaları temizleme
+rm -rf my-go-app/charts
+rm -rf templates/serviceaccount.yaml
+rm -rf templates/ingress.yaml
+rm -rf templates/hpa.yaml
+rm -rf templates/tests
+rm -rf templates/httproute.yaml
+```
+
+6) *values.yaml* dosyasının yapılandırılması
+```bash
+replicaCount: 1
+
+image:
+  repository: colakk35/hello-go
+  tag: "v1"
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8081
+  nodePort: 30080
+
+appConfig:
+  message: "Bu uygulama helm ile paketlendi!"
+```
+
+7) *deployment.yaml* dosyasının yapılandırılması
+```bash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-app.fullname" . }}
+  labels:
+    {{- include "my-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "my-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "my-app.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: TARGET
+              value: {{ .Values.appConfig.targetMessage | quote }}   
+```
+8) *service.yaml* dosyasının yapılandırılması 
+```bash
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-app.fullname" . }}
+  labels:
+    {{- include "my-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      nodePort: {{ .Values.service.nodePort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "my-app.selectorLabels" . | nindent 4 }}
+```
+
+9) Helm Chart'ın kurulumu ve kurulumun kontrol edilmesi
+```bash
+helm lint . #syntax hatası kontrolü
+helm upgrade --install go-demo .
+kubectl get pods
+kubectl get svc go-demo #pod detaylarını incelemek için
+```
+![Syntax Kontrolü](ss/helm-lint.png)
+
+10) Projenin canlıda test edilmesi
+> Bundan önceki adımda sanal makinemizin 30080 portu ile bilgisayarımızın 8080 portu arasında bir köprü kurmuştuk.
+![Chart Kontrolü](ss/helm.png)
