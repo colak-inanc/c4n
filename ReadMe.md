@@ -257,3 +257,37 @@ kubectl get svc go-demo #pod detaylarını incelemek için
 10) Projenin canlıda test edilmesi
 > Bundan önceki adımda sanal makinemizin 30080 portu ile bilgisayarımızın 8080 portu arasında bir köprü kurmuştuk.
 ![Chart Kontrolü](ss/helm.png)
+
+## Task 4 :
+Release ve Rollback işlemlerinin pratiğe dökülmesi
+<hr>
+
+1) *values.yaml* dosyamızda yer alan image'ımıza ait olan tag'ı yanlış olacak şekilde düzenliyoruz!
+![release-chart](ss/release-chart.png)
+
+2) Artık yanlış bir version vererek sürüm güncellemesi yapacağımız yaml dosyamız hazır, Uygulamanın güncellenmesi
+```bash
+helm upgrade go-demo .
+```
+![Helm Upgrade](ss/helm-upgrade.png)
+![Versiyon Kaynaklı Hatalar](ss/image-issues.png)
+
+3) Uygulama **Release** geçmişinin incelenmesi ve **Rollback** işlemi
+```bash
+helm history go-demo
+```
+```bash
+helm rollback go-demo <"revision-number">
+```
+
+4) Pod'ların kontrol edilmesi
+```bash
+kubectl get pods
+```
+![rollback & check status](ss/status-check.png)
+
+5) Uygulamanın çalıştığı *güncel values* değerlerinin incelenmesi
+```bash
+kubectl get values go-demo --all
+```
+![current values](ss/current-values.png)
