@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wordpress-ingress
+  annotations:
+    # Nginx Ingress kullanacağımızı belirtiyoruz
+    kubernetes.io/ingress.class: nginx
+    # HTTP gelenleri HTTPS'e zorla
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    nginx.ingress.kubernetes.io/proxy-redirect-from: "http://"
+    nginx.ingress.kubernetes.io/proxy-redirect-to: "https://"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - {{ .Values.ingress.host }}
+    secretName: my-tls-secret  # 1. Adımda oluşturduğumuz secret
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: wordpress-service
+            port:
+              number: 80

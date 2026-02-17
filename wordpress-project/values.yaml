@@ -1,0 +1,22 @@
+# -- DB --
+mariadb:
+  image: mariadb:10.6
+  rootPassword: "inanc123!"
+  user: "wp_user"
+  password: "wppass123!"
+  dbName: "wp_"
+
+# -- Wordpress --
+wordpress: 
+  image: wordpress:latest
+  service: 
+    type: NodePort
+    port: 80
+    nodePort: 30081
+  pvc: 
+    enabled: true
+    storage: 5Gi
+
+# -- ingress --
+ingress:
+  host: wordpress.local

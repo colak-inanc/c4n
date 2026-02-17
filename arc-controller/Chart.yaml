@@ -1,0 +1,7 @@
+apiVersion: v2
+name: arc-manager
+description: Action Runner Controller Secret ve Runner yönetimi için mikro-chart.
+type: application
+
+version: 0.1.0
+appVersion: "1.16.0"

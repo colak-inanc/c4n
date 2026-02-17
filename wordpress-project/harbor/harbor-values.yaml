@@ -1,0 +1,33 @@
+expose:
+  type: nodePort
+  tls:
+    enabled: false
+  nodePort:
+    http: 30002
+    https: 30443
+
+harborAdminPassword: "Harbor123!"
+externalURL: http://10.0.2.15:30002
+
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      size: 5Gi
+    database:
+      size: 2Gi
+    redis:
+      size: 1Gi
+    trivy:
+      size: 2Gi
+
+retention:
+  enabled: true
+  rules:
+    - disabled: false
+      template: "latestPushedK"
+      params:
+        count: 0
+        daysSinceLastPush: 60
+      action: "delete"
+

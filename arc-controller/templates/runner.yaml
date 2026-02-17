@@ -1,0 +1,24 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: wordpress-runner-deploy
+  namespace: actions-runner-system
+spec:
+  template:
+    spec:
+      repository: colak-inanc/c4n 
+---
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: HorizontalRunnerAutoscaler
+metadata:
+  name: wordpress-runner-as
+  namespace: actions-runner-system
+spec:
+  minReplicas: 2
+  maxReplicas: 5
+  scaleTargetRef:
+    name: wordpress-runner-deploy
+  metrics:
+  - type: PercentageRunnersBusy
+    scaleUpThreshold: '0.75'    
+    scaleDownThreshold: '0.30'
