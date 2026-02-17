@@ -6,34 +6,43 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: self-hosted 
+    runs-on: self-hosted # ARC üzerindeki autoscale runner'larını kullanır
     
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          # Git push yapabilmek için persist-credentials true olmalı
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Docker Login to Harbor
+        # daemon.json sayesinde bu adım artık HTTP hatası vermeyecek
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_URL }} -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
       - name: Build and Push WordPress Image
         run: |
-          # Commit SHA'yı tag olarak kullanıyoruz (Best Practice)
           IMAGE_TAG=${{ github.sha }}
-          IMAGE_NAME=${{ secrets.HARBOR_URL }}/wordpress-project/wordpress
-          
-          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+          # Harbor'daki proje adının wordpress-project olduğundan emin olmuştuk
+          IMAGE_NAME=${{ secrets.HARBOR_URL }/wordpress-project/my-wordpress
+
+          # Dockerfile wordpress-project içinde olduğu için context'i oraya veriyoruz
+          docker build -t $IMAGE_NAME:$IMAGE_TAG ./wordpress-project
           docker push $IMAGE_NAME:$IMAGE_TAG
+          
+          # latest etiketini de güncelleyelim
           docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
 
       - name: Update Helm Chart Image Tag
         run: |
-          # values.yaml içindeki imaj tag'ini yeni commit SHA ile güncelliyoruz
+          # values.yaml içindeki tag değerini sadece tırnak içindeki kısmı değiştirecek şekilde günceller
           sed -i 's/tag: .*/tag: "${{ github.sha }}"/' wordpress-project/values.yaml
-          
+
+          # Değişikliği repoya geri itiyoruz ki ArgoCD değişikliği fark etsin
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add wordpress-project/values.yaml
-          git commit -m "chore: update image tag to ${{ github.sha }}"
+          git commit -m "chore: update image tag to ${{ github.sha }} [skip ci]"
           git push
