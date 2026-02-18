@@ -21,4 +21,9 @@ wordpress:
 
 # -- ingress --
 ingress:
+  enabled: true
+  className: "traefik" 
   host: wordpress.local
+  annotations: 
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web"
