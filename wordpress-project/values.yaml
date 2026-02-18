@@ -8,7 +8,9 @@ mariadb:
 
 # -- Wordpress --
 wordpress: 
-  image: wordpress:latest
+  image:
+    repository: 10.0.2.15:30002/wordpress-project/my-wordpress
+    tag: "latest"
   service: 
     type: NodePort
     port: 80

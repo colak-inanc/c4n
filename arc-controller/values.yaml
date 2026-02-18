@@ -2,6 +2,9 @@ authSecret:
   create: false
   name: "arc-github-token"
 
+harbor: 
+  url: "10.0.2.15:30002"
+
 replicaCount: 1
 
 resources:

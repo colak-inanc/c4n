@@ -6,7 +6,18 @@ metadata:
 spec:
   template:
     spec:
-      repository: colak-inanc/c4n 
+      repository: colak-inanc/c4n
+      env:
+        - name: DOCKER_INSECURE_REGISTRY
+          value: {{ .Values.harbor.url | quote }}
+      dockerVolumeMounts:
+        - name: docker-config
+          mountPath: /etc/docker/daemon.json
+          subPath: daemon.json
+      volumes:
+        - name: docker-config
+          configMap:
+            name: harbor-insecure-config
 ---
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: HorizontalRunnerAutoscaler
