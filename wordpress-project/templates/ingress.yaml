@@ -4,14 +4,16 @@ metadata:
   name: wordpress-ingress
   annotations:
     # Nginx Ingress kullanacağımızı belirtiyoruz
-    kubernetes.io/ingress.class: nginx
+    # kubernetes.io/ingress.class: nginx
+    kubernetes.io/ingress.class: {{ .Values.ingress.className | quote }}
     # HTTP gelenleri HTTPS'e zorla
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
-    nginx.ingress.kubernetes.io/proxy-redirect-from: "http://"
-    nginx.ingress.kubernetes.io/proxy-redirect-to: "https://"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    # nginx.ingress.kubernetes.io/proxy-redirect-from: "http://"
+    # nginx.ingress.kubernetes.io/proxy-redirect-to: "https://"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web"
 spec:
-  ingressClassName: nginx
+  ingressClassName: {{ .Values.ingress.className | quote }}
   tls:
   - hosts:
       - {{ .Values.ingress.host }}
