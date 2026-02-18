@@ -10,7 +10,7 @@ mariadb:
 wordpress: 
   image:
     repository: 10.0.2.15:30002/wordpress-project/my-wordpress
-    tag: "2e549f9be0034b6a893cb866ec1f4a644b4acf19"
+    tag: "09cb3b772fd0a9d92f371b67e22ba87452260862"
   service: 
     type: NodePort
     port: 80
