@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-sm-app
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: 'https://helm.releases.hashicorp.com'
+      chart: vault
+      targetRevision: 0.28.0
+      helm:
+        valueFiles:
+          - $values/vault-sm/values.yaml 
+
+    - repoURL: 'https://github.com/colak-inanc/c4n.git'
+      targetRevision: main
+      ref: values 
+
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: vault-sm 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
