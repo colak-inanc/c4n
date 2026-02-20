@@ -1,8 +1,20 @@
+controller:
+  podAnnotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "arc-role"
+    vault.hashicorp.com/agent-inject-secret-token: "secret/data/arc"
+    vault.hashicorp.com/agent-inject-template-token: |
+      {{- with secret "secret/data/arc" -}}
+      {{ .Data.data.github_token }}
+      {{- end -}}
+  env:
+    - name: GITHUB_TOKEN
+      value: "/vault/secrets/token"
+
 authSecret:
   create: false
-  name: "arc-github-token"
 
-harbor: 
+harbor:
   url: "10.0.2.15:30002"
 
 replicaCount: 1
