@@ -16,6 +16,12 @@ spec:
     - repoURL: 'https://github.com/colak-inanc/c4n.git'
       targetRevision: main
       ref: values 
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      name: vault-sm-app-agent-injector-cfg
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
 
   destination:
     server: 'https://kubernetes.default.svc'
